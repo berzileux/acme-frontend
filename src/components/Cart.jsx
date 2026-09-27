@@ -26,7 +26,7 @@ export default function Cart({ items, onClose, onRemove, onUpdateQty }) {
         body: JSON.stringify({
           customer: { name: name.trim(), email: email.trim() },
           items: items.map(i => ({
-            sku: i.id,
+            sku: i._id,
             name: i.name,
             size: i.size,
             qty: i.qty,

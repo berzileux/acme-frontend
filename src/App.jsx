@@ -2,10 +2,15 @@ import { useState } from 'react'
 import Header from './components/Header.jsx'
 import Catalog from './pages/Catalog.jsx'
 import Cart from './components/Cart.jsx'
+import AdminOrders from './pages/AdminOrders.jsx'
 
 export default function App() {
   const [cart, setCart] = useState([])
   const [cartOpen, setCartOpen] = useState(false)
+
+  if (window.location.pathname === '/admin') {
+    return <AdminOrders />
+  }
 
   function addToCart(product, size) {
     setCart(prev => {
