@@ -6,6 +6,7 @@ export default function Cart({ items, onClose, onRemove, onUpdateQty }) {
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [orderResult, setOrderResult] = useState(null)
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
   const shipping = subtotal > 200 ? 0 : 9.99
@@ -37,6 +38,8 @@ export default function Cart({ items, onClose, onRemove, onUpdateQty }) {
 
       if (!res.ok) throw new Error(`Order failed (${res.status})`)
 
+      const saved = await res.json()
+      setOrderResult(saved)
       setView('success')
     } catch (err) {
       setError('Something went wrong placing your order. Please try again.')
@@ -236,15 +239,44 @@ export default function Cart({ items, onClose, onRemove, onUpdateQty }) {
         {view === 'success' && (
           <div style={{
             flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center'
+            alignItems: 'center', padding: 24, textAlign: 'center', overflowY: 'auto'
           }}>
-            <p style={{ fontSize: 32, marginBottom: 14 }}>✓</p>
-            <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, marginBottom: 8 }}>
+            <p style={{ fontSize: 32, marginTop: 20, marginBottom: 14 }}>✓</p>
+            <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, marginBottom: 20 }}>
               Thank you, {name.trim()}
             </p>
-            <p style={{ color: 'var(--mid)', fontSize: 13, marginBottom: 24 }}>
-              A confirmation has been sent to {email.trim()}.
-            </p>
+
+            {orderResult && (
+              <div style={{
+                width: '100%', textAlign: 'left', background: 'var(--white)',
+                border: '1px solid var(--border)', borderRadius: 10,
+                padding: 16, marginBottom: 24, fontSize: 12
+              }}>
+                <p style={{ color: 'var(--mid)', marginBottom: 6 }}>Order ID</p>
+                <p style={{ fontFamily: 'monospace', marginBottom: 14, wordBreak: 'break-all' }}>
+                  {orderResult.id}
+                </p>
+
+                <p style={{ color: 'var(--mid)', marginBottom: 6 }}>Status</p>
+                <p style={{ marginBottom: 14, textTransform: 'capitalize' }}>
+                  {orderResult.status}
+                </p>
+
+                <p style={{ color: 'var(--mid)', marginBottom: 6 }}>Placed at</p>
+                <p style={{ marginBottom: 14 }}>
+                  {orderResult.createdAt
+                    ? new Date(orderResult.createdAt).toLocaleString()
+                    : '—'}
+                </p>
+
+                <p style={{ color: 'var(--mid)', marginBottom: 6 }}>Total</p>
+                <p style={{ fontWeight: 600 }}>
+                  {orderResult.currency ? `${orderResult.currency} ` : '£'}
+                  {orderResult.total?.toFixed(2)}
+                </p>
+              </div>
+            )}
+
             <button
               onClick={onClose}
               style={{
