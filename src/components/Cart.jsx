@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function Cart({ items, onClose, onRemove, onUpdateQty }) {
   const [view, setView] = useState('cart') // 'cart' | 'details' | 'success'
@@ -7,6 +7,20 @@ export default function Cart({ items, onClose, onRemove, onUpdateQty }) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [orderResult, setOrderResult] = useState(null)
+  const [tick, setTick] = useState(1)
+  const tickRef = useRef(null)
+
+  useEffect(() => {
+    if (submitting) {
+      setTick(1)
+      tickRef.current = setInterval(() => {
+        setTick(t => t + 1)
+      }, 300)
+    } else {
+      clearInterval(tickRef.current)
+    }
+    return () => clearInterval(tickRef.current)
+  }, [submitting])
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
   const shipping = subtotal > 200 ? 0 : 9.99
@@ -218,7 +232,21 @@ export default function Cart({ items, onClose, onRemove, onUpdateQty }) {
                   marginBottom: 10
                 }}
               >
-                {submitting ? 'Placing Order…' : `Place Order · £${total.toFixed(2)}`}
+                {submitting ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{
+                      width: 20, height: 20, borderRadius: '50%',
+                      border: '1px solid var(--white)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 11, fontWeight: 700
+                    }}>
+                      {tick}
+                    </span>
+                    Placing Order…
+                  </span>
+                ) : (
+                  `Place Order · £${total.toFixed(2)}`
+                )}
               </button>
               <button
                 onClick={() => setView('cart')}
