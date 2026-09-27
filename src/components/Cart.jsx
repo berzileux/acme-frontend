@@ -1,7 +1,48 @@
+import { useState } from 'react'
+
 export default function Cart({ items, onClose, onRemove, onUpdateQty }) {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState(null)
+
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
   const shipping = subtotal > 200 ? 0 : 9.99
   const total = subtotal + shipping
+
+  const handleCheckout = async () => {
+    const name = prompt('Name for this order:')
+    const email = prompt('Email for order confirmation:')
+    if (!name || !email) return
+
+    setSubmitting(true)
+    setError(null)
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: { name, email },
+          items: items.map(i => ({
+            sku: i.id,
+            name: i.name,
+            size: i.size,
+            qty: i.qty,
+            price: i.price
+          })),
+          total
+        })
+      })
+
+      if (!res.ok) throw new Error(`Order failed (${res.status})`)
+
+      alert('Order placed! Check your email for confirmation.')
+      onClose()
+    } catch (err) {
+      setError('Something went wrong placing your order. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <>
@@ -95,18 +136,25 @@ export default function Cart({ items, onClose, onRemove, onUpdateQty }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, fontSize: 16, fontWeight: 600 }}>
               <span>Total</span><span>£{total.toFixed(2)}</span>
             </div>
-            <button style={{
-              width: '100%', height: 46,
-              background: 'var(--black)', color: 'var(--white)',
-              border: 'none', borderRadius: 10,
-              fontSize: 12, letterSpacing: 2, textTransform: 'uppercase',
-              fontWeight: 500, cursor: 'pointer'
-            }}>
-              Proceed to Checkout
+            <button
+              onClick={handleCheckout}
+              disabled={submitting}
+              style={{
+                width: '100%', height: 46,
+                background: 'var(--black)', color: 'var(--white)',
+                border: 'none', borderRadius: 10,
+                fontSize: 12, letterSpacing: 2, textTransform: 'uppercase',
+                fontWeight: 500, cursor: submitting ? 'default' : 'pointer',
+                opacity: submitting ? 0.6 : 1
+              }}
+            >
+              {submitting ? 'Placing Order…' : 'Proceed to Checkout'}
             </button>
-            <p style={{ fontSize: 11, color: 'var(--mid)', textAlign: 'center', marginTop: 10 }}>
-              Backend coming soon — orders will save to MongoDB Atlas
-            </p>
+            {error && (
+              <p style={{ fontSize: 11, color: '#B23A2C', textAlign: 'center', marginTop: 10 }}>
+                {error}
+              </p>
+            )}
           </div>
         )}
       </div>
