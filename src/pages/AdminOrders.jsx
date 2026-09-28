@@ -23,6 +23,14 @@ export default function AdminOrders() {
       maxWidth: 900, margin: '40px auto', padding: '0 24px',
       fontFamily: 'system-ui, sans-serif'
     }}>
+      <a href="/" style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        fontSize: 13, color: '#555', textDecoration: 'none',
+        marginBottom: 16
+      }}>
+        ← Back to store
+      </a>
+
       <h1 style={{ fontSize: 22, marginBottom: 20 }}>Order Admin</h1>
 
       {loading && <p style={{ color: '#888', fontSize: 13 }}>Loading orders…</p>}
